@@ -95,18 +95,17 @@ for domain_name in domain_names:
     tags = {}
     for tag in tag_list:
         tags[tag.split('=')[0]] = tag.split('=')[1]
-    if 'type' in tags and tags['type'].endswith(('-node-metrics')):
+    if 'client-id' in tags and 'type' in tags and tags['type'].endswith(('-node-metrics')):
         domain_node_metrics(domains_json['value'][domain_name], domain, tags, timestamp, q)
-    elif 'type' in tags and tags['type'].endswith(('producer-metrics','consumer-metrics','connect-metrics','consumer-coordinator-metrics','connect-coordinator-metrics')):
+    elif 'client-id' in tags and 'type' in tags and tags['type'].endswith(('producer-metrics','consumer-metrics','connect-metrics','consumer-coordinator-metrics','connect-coordinator-metrics')):
         domain_metrics(domains_json['value'][domain_name], domain, tags, timestamp, q)
-    elif 'type' in tags and tags['type'].endswith(('consumer-fetch-manager-metrics','producer-topic-metrics')):
+    elif 'client-id' in tags and 'type' in tags and tags['type'].endswith(('consumer-fetch-manager-metrics','producer-topic-metrics')):
         topic_metrics(domains_json['value'][domain_name], domain, tags, timestamp, q)
-    elif 'type' in tags and tags['type'] == 'kafka-metrics-count':
-        dispatch_value('{0}'.format(domain), '{0}.kafka-metrics-count'.format(tags['client-id']), domains_json['value'][domain_name]['count'], timestamp, q)
+    elif 'client-id' in tags and 'type' in tags and tags['type'] == 'kafka-metrics-count':
+        dispatch_value(domain, '{0}.kafka-metrics-count'.format(tags['client-id']), domains_json['value'][domain_name]['count'], timestamp, q)
     #else:
-        #print tags
-        #print domains_json['value'][domain_name].keys()
-        #dispatch_value('{0}'.format(domain), 'request-rate', domains_json['value'][domain_name]['request-rate'], timestamp)
+    #    print tags
+    #    print domains_json['value'][domain_name].keys()
 
     for i in q:
         print i
