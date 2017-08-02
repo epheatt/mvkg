@@ -1,0 +1,9 @@
+# Configuration file for mvkg
+
+#ENVIRONMENT=
+#KAFKA_HOST=
+#KAFKA_PORT=
+#CARBON_HOST=
+#CARBON_PORT=
+#RANDOM_SLEEP=
+#OMIT_JVM_STATS=
