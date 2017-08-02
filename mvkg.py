@@ -59,13 +59,10 @@ def system_stats(core_name, omit_jvm_stats):
     print '{0}.{1} {2} {3}'.format(prefix, 'system.totalPhysicalMemorySize', system_json['system']['totalPhysicalMemorySize'], timestamp)
     print '{0}.{1} {2} {3}'.format(prefix, 'system.totalSwapSpaceSize', system_json['system']['totalSwapSpaceSize'], timestamp)
 
-def domain_node_metrics(stats, domain, tags, ts, q=None):
+def domain_metrics(stats, domain, prefix, ts, q=None):
     for stat_name in stats.keys():
-        dispatch_value(domain, '{0}.{1}.{2}'.format(tags['client-id'],tags['node-id'],stat_name), stats[stat_name], ts, q)
-
-def domain_metrics(stats, domain, tags, ts, q=None):
-    for stat_name in stats.keys():
-        dispatch_value(domain, '{0}.{1}'.format(tags['client-id'],stat_name), stats[stat_name], ts, q)
+        if stat_name in stats and (type(stats[stat_name]) == int or type(stats[stat_name]) == float):
+            dispatch_value(domain, '{0}.{1}'.format(prefix,stat_name), stats[stat_name], ts, q)
 
 def topic_metrics(stats, domain, tags, ts, q=None):
     for stat_name in stats.keys():
@@ -78,6 +75,14 @@ def topic_metrics(stats, domain, tags, ts, q=None):
                 dispatch_value(domain, '{0}.topics.{1}.{2}'.format(tags['client-id'],topic_part,stat_part), stats[stat_name], ts, q)
             else:
                 dispatch_value(domain, '{0}.{1}'.format(tags['client-id'],stat_name), stats[stat_name], ts, q)
+
+def broker_topic_metrics(stats, domain, tags, ts, q=None):
+    for stat_name in stats.keys():
+        if stat_name in stats and (type(stats[stat_name]) == int or type(stats[stat_name]) == float):
+            if 'topic' in tags:
+                dispatch_value(domain, 'topics.{0}.{1}.{2}'.format(escape_topic(tags['topic']),tags['name'],stat_name), stats[stat_name], ts, q)
+            else:
+                dispatch_value(domain, '{0}.{1}'.format(tags['name'],stat_name), stats[stat_name], ts, q)
 
 domains_content = request_and_response_or_bail('GET', '/jolokia/read/kafka.*:*', 'Error while retrieving domains.')
 domains_json = json.loads(domains_content)
@@ -96,13 +101,29 @@ for domain_name in domain_names:
     for tag in tag_list:
         tags[tag.split('=')[0]] = tag.split('=')[1]
     if 'client-id' in tags and 'type' in tags and tags['type'].endswith(('-node-metrics')):
-        domain_node_metrics(domains_json['value'][domain_name], domain, tags, timestamp, q)
+        domain_metrics(domains_json['value'][domain_name], domain, '{0}.{1}'.format(tags['client-id'],tags['node-id']), timestamp, q)
     elif 'client-id' in tags and 'type' in tags and tags['type'].endswith(('producer-metrics','consumer-metrics','connect-metrics','consumer-coordinator-metrics','connect-coordinator-metrics')):
-        domain_metrics(domains_json['value'][domain_name], domain, tags, timestamp, q)
+        domain_metrics(domains_json['value'][domain_name], domain, tags['client-id'], timestamp, q)
     elif 'client-id' in tags and 'type' in tags and tags['type'].endswith(('consumer-fetch-manager-metrics','producer-topic-metrics')):
         topic_metrics(domains_json['value'][domain_name], domain, tags, timestamp, q)
     elif 'client-id' in tags and 'type' in tags and tags['type'] == 'kafka-metrics-count':
         dispatch_value(domain, '{0}.kafka-metrics-count'.format(tags['client-id']), domains_json['value'][domain_name]['count'], timestamp, q)
+    elif 'type' in tags and tags['type'].endswith(('Partition','Log')):
+        dispatch_value(domain, 'topics.{0}.partition-{1}.{2}'.format(escape_topic(tags['topic']),tags['partition'],tags['name']), domains_json['value'][domain_name]['Value'], timestamp, q)
+    elif 'type' in tags and tags['type'] == 'RequestMetrics':
+        domain_metrics(domains_json['value'][domain_name], domain, '{0}.{1}'.format(tags['request'],tags['name']), timestamp, q)
+    elif 'type' in tags and tags['type'] == 'BrokerTopicMetrics':
+        broker_topic_metrics(domains_json['value'][domain_name], domain, tags, timestamp, q)
+    elif 'client-id' in tags and 'type' in tags and tags['type'] == 'Fetch':
+        domain_metrics(domains_json['value'][domain_name], domain, tags['client-id'], timestamp, q)
+    elif 'type' in tags and tags['type'].endswith(('LogCleanerManager','GroupMetadataManager')):
+        dispatch_value(domain, '{0}'.format(tags['name']), domains_json['value'][domain_name]['Value'], timestamp, q)
+    elif 'type' in tags and tags['type'] == 'DelayedOperationPurgatory':
+        dispatch_value(domain, '{0}.{1}'.format(tags['delayedOperation'],tags['name']), domains_json['value'][domain_name]['Value'], timestamp, q)
+    elif 'type' in tags and tags['type'] == 'DelayedFetchMetrics':
+        domain_metrics(domains_json['value'][domain_name], domain, '{0}.{1}'.format(tags['fetcherType'],tags['name']), timestamp, q)
+    elif 'type' in tags and tags['type'] == 'ControllerStats':
+        domain_metrics(domains_json['value'][domain_name], domain, '{0}'.format(tags['name']), timestamp, q)
     #else:
     #    print tags
     #    print domains_json['value'][domain_name].keys()
