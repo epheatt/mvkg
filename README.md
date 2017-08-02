@@ -1,6 +1,6 @@
 # Minimum viable Kafka Graphite
 
-Inspired by dlutzy's excellent [mvredisgraphite](https://github.com/dlutzy/mvredisgraphite) here is mvkg.
+Inspired by proxy from dlutzy's excellent [mvredisgraphite](https://github.com/dlutzy/mvredisgraphite) vi neilprosser's [mvredisgraphite](https://github.com/neilprosser/mvsg) here is mvkg.
 
 Hopefully pretty simple to use, make sure `mvkg.py` and `mvkg.sh` are in the same folder and set the following environment variables:
 
