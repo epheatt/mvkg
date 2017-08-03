@@ -102,13 +102,13 @@ for domain_name in domain_names:
         tags[tag.split('=')[0]] = tag.split('=')[1]
     if 'client-id' in tags and 'type' in tags and tags['type'].endswith(('-node-metrics')):
         domain_metrics(domains_json['value'][domain_name], domain, '{0}.{1}'.format(tags['client-id'],tags['node-id']), timestamp, q)
-    elif 'client-id' in tags and 'type' in tags and tags['type'].endswith(('producer-metrics','consumer-metrics','connect-metrics','consumer-coordinator-metrics','connect-coordinator-metrics')):
+    elif 'client-id' in tags and 'type' in tags and tags['type'] in ['producer-metrics','consumer-metrics','connect-metrics','consumer-coordinator-metrics','connect-coordinator-metrics']:
         domain_metrics(domains_json['value'][domain_name], domain, tags['client-id'], timestamp, q)
-    elif 'client-id' in tags and 'type' in tags and tags['type'].endswith(('consumer-fetch-manager-metrics','producer-topic-metrics')):
+    elif 'client-id' in tags and 'type' in tags and tags['type'] in ['consumer-fetch-manager-metrics','producer-topic-metrics']:
         topic_metrics(domains_json['value'][domain_name], domain, tags, timestamp, q)
     elif 'client-id' in tags and 'type' in tags and tags['type'] == 'kafka-metrics-count':
         dispatch_value(domain, '{0}.kafka-metrics-count'.format(tags['client-id']), domains_json['value'][domain_name]['count'], timestamp, q)
-    elif 'type' in tags and tags['type'].endswith(('Partition','Log')):
+    elif 'type' in tags and tags['type'] in ['Partition','Log']:
         dispatch_value(domain, 'topics.{0}.partition-{1}.{2}'.format(escape_topic(tags['topic']),tags['partition'],tags['name']), domains_json['value'][domain_name]['Value'], timestamp, q)
     elif 'type' in tags and tags['type'] == 'RequestMetrics':
         domain_metrics(domains_json['value'][domain_name], domain, '{0}.{1}'.format(tags['request'],tags['name']), timestamp, q)
@@ -116,14 +116,16 @@ for domain_name in domain_names:
         broker_topic_metrics(domains_json['value'][domain_name], domain, tags, timestamp, q)
     elif 'client-id' in tags and 'type' in tags and tags['type'] == 'Fetch':
         domain_metrics(domains_json['value'][domain_name], domain, tags['client-id'], timestamp, q)
-    elif 'type' in tags and tags['type'].endswith(('LogCleanerManager','GroupMetadataManager')):
+    elif 'type' in tags and tags['type'] in ['LogCleanerManager','GroupMetadataManager','KafkaController']:
         dispatch_value(domain, '{0}'.format(tags['name']), domains_json['value'][domain_name]['Value'], timestamp, q)
     elif 'type' in tags and tags['type'] == 'DelayedOperationPurgatory':
         dispatch_value(domain, '{0}.{1}'.format(tags['delayedOperation'],tags['name']), domains_json['value'][domain_name]['Value'], timestamp, q)
     elif 'type' in tags and tags['type'] == 'DelayedFetchMetrics':
         domain_metrics(domains_json['value'][domain_name], domain, '{0}.{1}'.format(tags['fetcherType'],tags['name']), timestamp, q)
-    elif 'type' in tags and tags['type'] == 'ControllerStats':
+    elif 'type' in tags and tags['type'] in ['ControllerStats','SessionExpireListener','KafkaRequestHandlerPool']:
         domain_metrics(domains_json['value'][domain_name], domain, '{0}'.format(tags['name']), timestamp, q)
+    elif 'type' in tags and tags['type'] in ['jetty-metrics','jersey-metrics']:
+        domain_metrics(domains_json['value'][domain_name], domain, '{0}'.format(tags['type']), timestamp, q)
     #else:
     #    print tags
     #    print domains_json['value'][domain_name].keys()
