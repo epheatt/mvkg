@@ -14,11 +14,6 @@ then
   exit 1
 fi
 
-if [ "xx$APP_NAME" = "xx" ]
-then
-  APP_NAME="kafka"
-fi
-
 if [ "xx$KAFKA_HOST" = "xx" ]
 then
   echo KAFKA_HOST must be set
@@ -48,7 +43,7 @@ then
   HOSTNAME=`hostname`
 fi
 
-OUTPUT=`python $SCRIPT_PATH/mvkg.py $HOSTNAME $ENVIRONMENT $APP_NAME $KAFKA_HOST $KAFKA_PORT $OMIT_JVM_STATS`
+OUTPUT=`python $SCRIPT_PATH/mvkg.py $HOSTNAME $ENVIRONMENT $KAFKA_HOST $KAFKA_PORT $OMIT_JVM_STATS`
 
 if [ $? = 0 ]
 then

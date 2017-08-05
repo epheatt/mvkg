@@ -16,4 +16,4 @@ Then run `mvkg.sh` from wherever you've put it. It'll gather the metrics from Jo
 
 Ensure the KAFKA_JMX_OPTS in your init.d script includes the jolokia agent jar and options "-javaagent:/opt/confluent/confluent-3.2.1/jolokia-jvm-1.2.3-agent.jar=port=9080,host=0.0.0.0"
 
-This will start creating metrics with a prefix of `$ENVIRONMENT.kafka.$HOST`. It's a bit specific to my use-case, any customisations are more than welcome.
+This will start creating metrics with a prefix of `$ENVIRONMENT.$HOST`. It's a bit specific to my use-case, any customisations are more than welcome.
